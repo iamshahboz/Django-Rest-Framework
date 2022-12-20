@@ -2,6 +2,7 @@
 from app.models import Product
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework import permissions, authentication
 from .serializers import ProductSerializer
 from rest_framework import generics
 from django.http import HttpResponse
@@ -22,7 +23,7 @@ def product_alt_view(request, *args, pk=None, **kwargs):
             obj = get_object_or_404(Product, pk=pk)
             data = ProductSerializer(obj, many=False).data
             return Response()
-        
+
         queryset = Product.objects.all()
         data = ProductSerializer(queryset, many=True).data
         return Response(data)
@@ -43,8 +44,6 @@ def product_alt_view(request, *args, pk=None, **kwargs):
 """
 
 
-
-
 def homepage(request):
     return HttpResponse("<center>This is brand new website</center>")
 
@@ -52,6 +51,22 @@ def homepage(request):
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    def perform_create(self, serializer):
+        title = serializer.validated_data.get('title')
+        content = serializer.validated_data.get('content') or None
+        if content is None:
+            content = title
+        serializer.save(user=self.request.user, content=content)
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset(*args, **kwargs)
+        request = self.request
+        user = request.user
+        if not user.is_authenticated:
+            return Product.objects.none()
+        
+        return qs.filter(user=request.user)
 
 
 class ProductDetailAPIView(generics.RetrieveAPIView):
@@ -68,4 +83,3 @@ class ProductUpdateAPIView(generics.UpdateAPIView):
 class ProductDestroyAPIView(generics.DestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-

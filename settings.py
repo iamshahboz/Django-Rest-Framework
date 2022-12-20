@@ -71,6 +71,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'home.wsgi.application'
 
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        "rest_framework.authentication.SessionAuthentication",
+
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        "rest_framework.authentication.IsAuthenticatedOrReadOnly"
+    ]
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
